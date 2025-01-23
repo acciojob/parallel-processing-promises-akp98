@@ -9,6 +9,7 @@
 // ];
 // Step 1: Create a function to download images using Promise.all
 // HTML Elements
+// HTML Elements
 const output = document.getElementById("output");
 const loadingDiv = document.getElementById("loading");
 const errorDiv = document.getElementById("error");
@@ -20,15 +21,16 @@ const images = [
   { url: "https://picsum.photos/id/239/200/300" },
 ];
 
-// Step 1: Function to download all images
-function downloadImages(imageArray) {
-  // Show the loading spinner
-  loadingDiv.style.display = 'block';
-  output.innerHTML = ''; // Clear the output div
-  errorDiv.innerHTML = ''; // Clear previous errors
-  
-  // Step 2: Create promises for each image download
-  const imagePromises = imageArray.map(image => {
+// Strategy Pattern - Base Class for Image Downloading
+class ImageDownloadStrategy {
+  download(image) {
+    throw "Method 'download()' must be implemented";
+  }
+}
+
+// Concrete Strategy for fetching images via fetch API
+class FetchImageDownloadStrategy extends ImageDownloadStrategy {
+  download(image) {
     return fetch(image.url)
       .then(response => {
         if (!response.ok) {
@@ -38,17 +40,64 @@ function downloadImages(imageArray) {
       })
       .then(blob => {
         const imgElement = document.createElement('img');
-        imgElement.src = URL.createObjectURL(blob); // Create an image URL from the blob
+        imgElement.src = URL.createObjectURL(blob);
         return imgElement;
       })
       .catch(error => {
-        // In case of an error, reject with a detailed message
-        throw new Error(`Failed to load image's URL: ${image.url}`);
+        throw new Error(`Failed to load image: ${image.url}`);
       });
-  });
+  }
+}
 
-  // Step 3: Use Promise.all to handle multiple promises
-  Promise.all(imagePromises)
+// Concrete Strategy for downloading images with XMLHttpRequest (as a backup or alternative strategy)
+class XHRImageDownloadStrategy extends ImageDownloadStrategy {
+  download(image) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', image.url, true);
+      xhr.responseType = 'blob';
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const imgElement = document.createElement('img');
+          imgElement.src = URL.createObjectURL(xhr.response);
+          resolve(imgElement);
+        } else {
+          reject(`Failed to load image: ${image.url}`);
+        }
+      };
+      xhr.onerror = () => reject(`Failed to load image: ${image.url}`);
+      xhr.send();
+    });
+  }
+}
+
+// Context class to execute the image downloading strategy
+class ImageDownloader {
+  constructor(strategy) {
+    this.strategy = strategy;
+  }
+
+  setStrategy(strategy) {
+    this.strategy = strategy;
+  }
+
+  downloadImages(imageArray) {
+    const imagePromises = imageArray.map(image => this.strategy.download(image));
+    return Promise.all(imagePromises);
+  }
+}
+
+// Step 1: Function to download all images using selected strategy
+function downloadImages(imageArray) {
+  const fetchStrategy = new FetchImageDownloadStrategy();
+  const downloader = new ImageDownloader(fetchStrategy);
+
+  // Show the loading spinner
+  loadingDiv.style.display = 'block';
+  output.innerHTML = ''; // Clear the output div
+  errorDiv.innerHTML = ''; // Clear previous errors
+  
+  downloader.downloadImages(imageArray)
     .then(images => {
       loadingDiv.style.display = 'none'; // Hide the loading spinner
       images.forEach(imgElement => {
@@ -61,7 +110,7 @@ function downloadImages(imageArray) {
     });
 }
 
-// Step 4: Attach event listener to the download button
+// Step 2: Attach event listener to the download button
 const downloadButton = document.getElementById("download-images-button");
 downloadButton.addEventListener("click", function () {
   downloadImages(images); // Call the function to start downloading images
