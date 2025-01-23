@@ -8,17 +8,26 @@
 //   { url: "https://picsum.photos/id/239/200/300" },
 // ];
 // Step 1: Create a function to download images using Promise.all
+// HTML Elements
+const output = document.getElementById("output");
+const loadingDiv = document.getElementById("loading");
+const errorDiv = document.getElementById("error");
+
+// Image URLs
+const images = [
+  { url: "https://picsum.photos/id/237/200/300" },
+  { url: "https://picsum.photos/id/238/200/300" },
+  { url: "https://picsum.photos/id/239/200/300" },
+];
+
+// Step 1: Function to download all images
 function downloadImages(imageArray) {
-  const loadingDiv = document.getElementById('loading');
-  const outputDiv = document.getElementById('output');
-  const errorDiv = document.getElementById('error');
-
-  // Show loading spinner while images are being downloaded
+  // Show the loading spinner
   loadingDiv.style.display = 'block';
-  outputDiv.innerHTML = ''; // Clear previous output
-  errorDiv.innerHTML = '';  // Clear previous error message
-
-  // Step 2: Create an array of promises for each image
+  output.innerHTML = ''; // Clear the output div
+  errorDiv.innerHTML = ''; // Clear previous errors
+  
+  // Step 2: Create promises for each image download
   const imagePromises = imageArray.map(image => {
     return fetch(image.url)
       .then(response => {
@@ -29,39 +38,32 @@ function downloadImages(imageArray) {
       })
       .then(blob => {
         const imgElement = document.createElement('img');
-        imgElement.src = URL.createObjectURL(blob); // Create an object URL from the blob
+        imgElement.src = URL.createObjectURL(blob); // Create an image URL from the blob
         return imgElement;
       })
       .catch(error => {
-        // If an error occurs, reject the promise
+        // In case of an error, reject with a detailed message
         throw new Error(`Failed to load image's URL: ${image.url}`);
       });
   });
 
-  // Step 3: Use Promise.all to handle all the image download promises
+  // Step 3: Use Promise.all to handle multiple promises
   Promise.all(imagePromises)
     .then(images => {
-      // Step 4: Hide loading spinner and show downloaded images
-      loadingDiv.style.display = 'none';
+      loadingDiv.style.display = 'none'; // Hide the loading spinner
       images.forEach(imgElement => {
-        outputDiv.appendChild(imgElement); // Append each image to the output div
+        output.appendChild(imgElement); // Append the images to the output div
       });
     })
     .catch(error => {
-      // If any image fails to download, show an error message
-      loadingDiv.style.display = 'none';
-      errorDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+      loadingDiv.style.display = 'none'; // Hide the loading spinner if error occurs
+      errorDiv.innerHTML = `<p>Error: ${error.message}</p>`; // Show error message
     });
 }
 
-// Step 5: Test the function with an array of image URLs
-const images = [
-  { url: 'https://via.placeholder.com/150' },
-  { url: 'https://via.placeholder.com/200' },
-  { url: 'https://via.placeholder.com/250' },
-  { url: 'https://invalid-url.com/image.jpg' }, // An invalid URL to test error handling
-];
-
-// Call the function to download images
-downloadImages(images);
+// Step 4: Attach event listener to the download button
+const downloadButton = document.getElementById("download-images-button");
+downloadButton.addEventListener("click", function () {
+  downloadImages(images); // Call the function to start downloading images
+});
 
