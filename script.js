@@ -66,4 +66,3 @@ const downloadButton = document.getElementById("download-images-button");
 downloadButton.addEventListener("click", function () {
   downloadImages(images); // Call the function to start downloading images
 });
-
