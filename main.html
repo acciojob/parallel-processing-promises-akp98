@@ -1,13 +1,38 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Image Download</title>
+  <style>
+    #loading {
+      display: none;
+    }
+    #output img {
+      width: 100px;
+      height: 100px;
+      margin: 10px;
+    }
+    #error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Download</h1>
+  
+  <!-- Loading Spinner -->
+  <div id="loading">
+    <p>Loading images...</p>
+    <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading Spinner">
+  </div>
 
-<html>
-  <head>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
+  <!-- Output for downloaded images -->
+  <div id="output"></div>
 
-  <body>
-    <!-- the entire body must be written by student -->
-    <div id="output"></div>
-    <script type="text/javascript" src="./script.js"></script>
-  </body>
+  <!-- Error Message -->
+  <div id="error"></div>
+
+  <script src="script.js"></script>
+</body>
 </html>
